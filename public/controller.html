@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Graphics controller – ScoreRelay-RX</title>
+  <link rel="stylesheet" href="editor.css">
+  <style>
+    .page { max-width: 900px; margin: 0 auto; padding: 1rem; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <span class="brand">ScoreRelay-RX</span>
+    <a href="/">Settings</a>
+    <a href="/designer">Designer</a>
+    <span class="spacer"></span>
+    <button type="button" class="secondary" id="btn-new-output">+ New output</button>
+  </div>
+
+  <div class="page">
+    <p class="hint">An output is a browser-source URL (paste it into OBS/vMix). Assign one or more saved graphics to an output, then turn each on/off independently — group several graphics onto one output, or give each its own.</p>
+    <ul class="output-list" id="output-list"></ul>
+  </div>
+
+  <script src="controller.js"></script>
+</body>
+</html>

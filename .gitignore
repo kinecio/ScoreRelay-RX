@@ -1,0 +1,17 @@
+node_modules/
+dist/
+credentials.json
+data-path.json
+*.local.json
+.DS_Store
+scorerelay-data.json
+data/
+graphics-designs/
+graphics-outputs.json
+release/
+
+# Local editor/agent config, debug output and per-user settings — never published
+.cursor/
+.claude/
+pkg@*
+graphics-settings.json

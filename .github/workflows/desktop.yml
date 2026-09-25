@@ -1,0 +1,89 @@
+name: Desktop apps
+
+# Builds the Windows installer and the macOS disk images on real Windows and
+# macOS runners. Run it by hand (Actions -> Desktop apps -> Run workflow) or
+# push a tag like v1.2.0.
+#
+# Signing is optional and driven entirely by repository secrets — without them
+# the apps are built unsigned (fine for testing, but Windows SmartScreen and
+# macOS Gatekeeper will warn users). No certificate or password lives in this
+# repository.
+#   macOS:   CSC_LINK, CSC_KEY_PASSWORD           (Developer ID Application certificate, .p12)
+#            APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD, APPLE_TEAM_ID   (notarization)
+#   Windows: WIN_CSC_LINK, WIN_CSC_KEY_PASSWORD   (code-signing certificate, .pfx)
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - name: Nothing sensitive in the tree
+        run: |
+          # Fail if private key material slipped in. (AGENTS.md also asks for a
+          # manual look for tokens and passwords before a release.)
+          if git grep -nE "BEGIN [A-Z ]*PRIVATE KEY" -- . ':!package-lock.json'; then
+            echo "Possible secret found"; exit 1
+          fi
+
+  mac:
+    needs: test
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build, sign and notarize (when secrets are set)
+        env:
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          if [ -n "$CSC_LINK" ] && [ -n "$APPLE_ID" ]; then
+            npx electron-builder --mac --publish never -c.mac.notarize=true
+          else
+            echo "No signing secrets: building an UNSIGNED app"
+            CSC_IDENTITY_AUTO_DISCOVERY=false npx electron-builder --mac --publish never
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ScoreRelay-RX-macOS
+          path: release/*.dmg
+
+  windows:
+    needs: test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build (signed when secrets are set)
+        shell: bash
+        env:
+          WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+        run: |
+          if [ -z "$WIN_CSC_LINK" ]; then echo "No signing secrets: building an UNSIGNED installer"; fi
+          npx electron-builder --win --publish never
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ScoreRelay-RX-Windows
+          path: release/*.exe
