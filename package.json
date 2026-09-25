@@ -1,0 +1,94 @@
+{
+  "name": "scorerelay-rx",
+  "version": "1.0.0",
+  "description": "ScoreRelay-RX: cloud/local/USB/Bluetooth scoreboard data relay with web UI",
+  "main": "electron/main.js",
+  "bin": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test",
+    "build": "pkg . --targets node18-macos-x64,node18-macos-arm64,node18-win-x64,node18-linux-x64 --output dist/ScoreRelay-RX",
+    "build:host": "node scripts/pkg-host.js",
+    "electron": "electron .",
+    "dist:mac": "electron-builder --mac",
+    "dist:win": "electron-builder --win",
+    "dist:dir": "electron-builder --dir"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@stoprocent/noble": "^2.8.0",
+    "express": "^4.21.0",
+    "serialport": "^13.0.0"
+  },
+  "devDependencies": {
+    "electron": "^44.4.5",
+    "electron-builder": "^26.15.3",
+    "pkg": "^5.8.1"
+  },
+  "pkg": {
+    "scripts": "src/**/*.js",
+    "assets": [
+      "public/**",
+      "package.json",
+      "node_modules/@serialport/bindings-cpp/prebuilds/**/*.node",
+      "node_modules/@stoprocent/noble/prebuilds/**/*.node",
+      "node_modules/@stoprocent/bluetooth-hci-socket/prebuilds/**/*.node"
+    ],
+    "outputPath": "dist"
+  },
+  "build": {
+    "appId": "com.scorerelay.rx",
+    "productName": "ScoreRelay-RX",
+    "copyright": "MIT License",
+    "asar": false,
+    "npmRebuild": false,
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "electron/**/*",
+      "src/**/*",
+      "public/**/*",
+      "package.json",
+      "LICENSE",
+      "THIRD_PARTY_NOTICES.md",
+      "!**/node_modules/**/prebuilds/{android-*,linux-*}/**"
+    ],
+    "mac": {
+      "category": "public.app-category.utilities",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ],
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
+      "extendInfo": {
+        "NSBluetoothAlwaysUsageDescription": "ScoreRelay-RX uses Bluetooth to connect to your ScoreRelay device.",
+        "NSBluetoothPeripheralUsageDescription": "ScoreRelay-RX uses Bluetooth to connect to your ScoreRelay device."
+      }
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}

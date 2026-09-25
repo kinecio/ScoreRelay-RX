@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Graphics settings – ScoreRelay-RX</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .color-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
+    .color-row input[type="color"] { width: 48px; height: 32px; padding: 0; border: 1px solid #444; border-radius: 4px; cursor: pointer; }
+    .color-row input[type="text"] { max-width: 120px; }
+    .elements-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.5rem; margin-top: 0.5rem; }
+    .graphics-links { margin-top: 1rem; }
+    .graphics-links a { color: #6eb; margin-right: 1rem; }
+    .test-sport-row select { max-width: 160px; margin-left: 0.5rem; padding: 0.35rem 0.5rem; background: #1a1a1a; border: 1px solid #444; border-radius: 4px; color: #e0e0e0; }
+    .test-sport-row select:disabled { opacity: 0.6; cursor: not-allowed; }
+    .manual-fields { margin-top: 0.75rem; }
+    .manual-field-row { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem 1rem; margin-bottom: 0.6rem; }
+    .manual-field-row .override-label { margin-right: 0.5rem; min-width: 75px; }
+    .manual-field-row label:not(.override-label) { min-width: 80px; }
+    .manual-field-row input[type="text"], .manual-field-row input[type="number"] { max-width: 140px; }
+    .manual-field-row select { max-width: 120px; padding: 0.35rem 0.5rem; background: #1a1a1a; border: 1px solid #444; border-radius: 4px; color: #e0e0e0; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Score graphic settings</h1>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Sport</h2>
+      <p class="hint">Use the live sport from the connection, or pick a sport for testing the graphic.</p>
+      <label><input type="checkbox" id="auto-sport" checked> Auto sport (use live data)</label>
+      <div class="test-sport-row" style="margin-top: 0.5rem;">
+        <label for="test-sport">Test sport</label>
+        <select id="test-sport" disabled>
+          <option value="baseball">Baseball</option>
+          <option value="basketball">Basketball</option>
+          <option value="football">Football</option>
+          <option value="soccer">Soccer</option>
+          <option value="volleyball">Volleyball</option>
+        </select>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Template</h2>
+      <p class="hint">Choose the scorebug layout. Logo template supports baseball and basketball with a branding image.</p>
+      <div style="margin-bottom: 0.5rem;">
+        <label><input type="radio" name="template" value="simple" id="template-simple" checked> Simple (no logo)</label>
+        <label style="margin-left: 1rem;"><input type="radio" name="template" value="logo" id="template-logo"> Logo (with branding)</label>
+      </div>
+      <div id="logo-url-row" class="manual-field-row" style="display: none;">
+        <label for="logo-url">Logo URL</label>
+        <input type="text" id="logo-url" placeholder="https://… image URL" maxlength="512" style="max-width: 320px;">
+      </div>
+      <div id="logo-box-color-row" class="manual-field-row color-row" style="display: none; margin-top: 0.5rem;">
+        <label for="logo-box-color">Logo box color</label>
+        <input type="color" id="logo-box-color" value="#ffffff" title="Logo box background">
+        <input type="text" id="logo-box-hex" placeholder="#ffffff" maxlength="9" style="max-width: 100px;">
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Manual field overrides</h2>
+      <p class="hint">Check "Override" to use the manual value instead of live data for that field.</p>
+      <div class="manual-fields">
+        <div class="manual-field-row">
+          <label class="override-label"><input type="checkbox" id="ov-guestTeamName"> Override</label>
+          <label for="manual-guestTeamName">Away team</label>
+          <input type="text" id="manual-guestTeamName" placeholder="e.g. Yankees">
+        </div>
+        <div class="manual-field-row">
+          <label class="override-label"><input type="checkbox" id="ov-homeTeamName"> Override</label>
+          <label for="manual-homeTeamName">Home team</label>
+          <input type="text" id="manual-homeTeamName" placeholder="e.g. Dodgers">
+        </div>
+        <div class="manual-field-row">
+          <label class="override-label"><input type="checkbox" id="ov-guestScore"> Override</label>
+          <label for="manual-guestScore">Away score</label>
+          <input type="number" id="manual-guestScore" min="0" max="999" value="0" style="max-width: 80px;">
+        </div>
+        <div class="manual-field-row">
+          <label class="override-label"><input type="checkbox" id="ov-homeScore"> Override</label>
+          <label for="manual-homeScore">Home score</label>
+          <input type="number" id="manual-homeScore" min="0" max="999" value="0" style="max-width: 80px;">
+        </div>
+        <div class="manual-field-row">
+          <label class="override-label"><input type="checkbox" id="ov-inning"> Override</label>
+          <label for="manual-inning">Inning</label>
+          <input type="number" id="manual-inning" min="1" max="10" value="1" style="max-width: 80px;">
+        </div>
+        <div class="manual-field-row">
+          <label class="override-label"><input type="checkbox" id="ov-topBottom"> Override</label>
+          <label for="manual-topBottom">Top/Bottom</label>
+          <select id="manual-topBottom">
+            <option value="top">Top</option>
+            <option value="bottom">Bottom</option>
+          </select>
+        </div>
+        <div class="manual-field-row">
+          <label class="override-label"><input type="checkbox" id="ov-ball"> Override</label>
+          <label for="manual-ball">Ball</label>
+          <input type="number" id="manual-ball" min="0" max="3" value="0" style="max-width: 60px;">
+        </div>
+        <div class="manual-field-row">
+          <label class="override-label"><input type="checkbox" id="ov-strike"> Override</label>
+          <label for="manual-strike">Strike</label>
+          <input type="number" id="manual-strike" min="0" max="2" value="0" style="max-width: 60px;">
+        </div>
+        <div class="manual-field-row">
+          <label class="override-label"><input type="checkbox" id="ov-out"> Override</label>
+          <label for="manual-out">Outs</label>
+          <input type="number" id="manual-out" min="0" max="3" value="0" style="max-width: 60px;">
+        </div>
+        <div class="manual-field-row">
+          <label class="override-label"><input type="checkbox" id="ov-clock"> Override</label>
+          <label for="manual-clock">Clock</label>
+          <input type="text" id="manual-clock" placeholder="e.g. 12:00" maxlength="32">
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Appearance</h2>
+      <div class="color-row">
+        <label for="accent-color">Accent color</label>
+        <input type="color" id="accent-color" value="#00ff41" title="Accent color">
+        <input type="text" id="accent-hex" placeholder="#00ff41" maxlength="7">
+      </div>
+
+      <h3>Elements to display (baseball)</h3>
+      <p class="hint">Choose which parts of the score graphic appear.</p>
+      <div class="elements-grid" id="elements-container">
+        <label><input type="checkbox" id="el-teams" checked> Teams</label>
+        <label><input type="checkbox" id="el-awayScore" checked> Away score</label>
+        <label><input type="checkbox" id="el-homeScore" checked> Home score</label>
+        <label><input type="checkbox" id="el-inning" checked> Inning</label>
+        <label><input type="checkbox" id="el-count" checked> Count</label>
+        <label><input type="checkbox" id="el-outs" checked> Outs</label>
+        <label><input type="checkbox" id="el-clock"> Clock</label>
+      </div>
+
+      <div class="actions" style="margin-top: 1rem;">
+        <button type="button" id="btn-save">Save settings</button>
+      </div>
+
+      <div class="graphics-links">
+        <a href="/">← Back to Settings</a>
+        <a href="/graphic" target="_blank" rel="noopener">Open score graphic</a>
+      </div>
+    </section>
+  </main>
+
+  <script src="graphics.js"></script>
+</body>
+</html>

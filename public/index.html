@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ScoreRelay-RX</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="update-banner" class="banner hidden">
+    A new version is available. <a id="update-link" href="#" target="_blank" rel="noopener">Download</a>
+    <button type="button" id="dismiss-update">Dismiss</button>
+  </div>
+
+  <header>
+    <h1>ScoreRelay-RX</h1>
+  </header>
+
+  <main>
+    <section class="card settings">
+      <h2>Settings</h2>
+      <form id="settings-form">
+        <fieldset>
+          <legend>Connection mode</legend>
+          <label><input type="radio" name="mode" value="cloud" checked> Cloud (ScoreRelay portal)</label>
+          <label><input type="radio" name="mode" value="local"> Local device (TLS TCP)</label>
+          <label><input type="radio" name="mode" value="usb"> USB device (this computer)</label>
+          <label><input type="radio" name="mode" value="ble"> Bluetooth device (this computer)</label>
+        </fieldset>
+
+        <div id="cloud-fields" class="mode-fields">
+          <p class="hint">Connect through the ScoreRelay cloud using an access token from your ScoreRelay cloud portal (Live Data tab). The server is fixed — nothing to configure here. Cloud connectivity is rolling out; if your account doesn't have it yet, this may not connect — use Local device mode instead.</p>
+          <label>Access token <input type="password" id="cloud-token" autocomplete="off" placeholder="srlt_… or srlk_…"></label>
+          <label><input type="checkbox" id="save-credentials" checked> Save token</label>
+        </div>
+
+        <div id="local-fields" class="mode-fields hidden">
+          <p class="hint">Connect straight to a ScoreRelay device on your network. Host is the device's IP address; the API token is shown once under Security on the device's settings page.</p>
+          <label>Device address <input type="text" id="local-host" placeholder="192.168.1.50"></label>
+          <label>Port <input type="number" id="local-port" value="1010" min="1" max="65535"></label>
+          <label>API token <input type="password" id="local-token" autocomplete="off"></label>
+        </div>
+
+        <div id="usb-fields" class="mode-fields hidden">
+          <p class="hint">Connect a ScoreRelay device with a USB cable. Works even when the device has
+            no Wi-Fi or network at all. The connection runs inside this app, so it stays up without
+            keeping this page open.</p>
+          <label>USB port <select id="usb-port-select"><option value="">Loading…</option></select></label>
+          <button type="button" id="btn-refresh-usb">Refresh ports</button>
+          <p class="hint" id="usb-port-name"></p>
+        </div>
+
+        <div id="ble-fields" class="mode-fields hidden">
+          <p class="hint">Connect to a ScoreRelay device wirelessly over Bluetooth — no network needed.
+            The first time, your computer has to be paired with the device using the 6-digit passkey from
+            the device's label or your ScoreRelay portal. macOS asks for it automatically when you connect;
+            on Windows, pair the device in your system Bluetooth settings first. Then enter the device's
+            admin password. The connection runs inside this app, so it stays up without this page.</p>
+          <label>Device <select id="ble-device-select"><option value="">Scan to find devices</option></select></label>
+          <button type="button" id="btn-scan-ble">Scan for devices</button>
+          <p class="hint" id="ble-scan-status"></p>
+          <label>Admin password <input type="password" id="ble-password" autocomplete="off"></label>
+          <p class="hint" id="ble-status"></p>
+        </div>
+
+        <fieldset>
+          <legend>Output</legend>
+          <label><input type="checkbox" id="output-json"> JSON file</label>
+          <label><input type="checkbox" id="output-txt"> Individual TXT files</label>
+          <label><input type="checkbox" id="output-tcp"> Host TCP server</label>
+        </fieldset>
+
+        <div class="data-path-row">
+          <label for="data-path">Data folder path</label>
+          <div class="data-path-input-wrap">
+            <input type="text" id="data-path" placeholder="e.g. /Users/you/Documents/ScoreRelay-RX-Data">
+            <button type="button" id="btn-save-path">Save path</button>
+          </div>
+          <p class="hint">Where JSON and TXT output files are written.</p>
+        </div>
+
+        <div class="actions">
+          <button type="button" id="btn-connect">Connect</button>
+          <button type="button" id="btn-disconnect" disabled>Disconnect</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="card hidden" id="ble-manage">
+      <h2>Device</h2>
+      <p class="hint" id="ble-device-summary"></p>
+
+      <div id="ble-password-change" class="hidden">
+        <h3>Set a new admin password</h3>
+        <p class="hint">This device is still using its default password. Choose a new one before it will send data or accept changes.</p>
+        <label>Current password <input type="password" id="ble-pw-current" autocomplete="off"></label>
+        <label>New password <input type="password" id="ble-pw-new" autocomplete="off"></label>
+        <button type="button" id="btn-ble-password">Change password</button>
+      </div>
+
+      <h3>Wi-Fi</h3>
+      <button type="button" id="btn-ble-wifi-scan">Scan networks</button>
+      <label>Network <select id="ble-wifi-select"><option value="">Scan to list networks</option></select></label>
+      <label>Wi-Fi password <input type="password" id="ble-wifi-pass" autocomplete="off"></label>
+      <button type="button" id="btn-ble-wifi-join">Join network</button>
+      <p class="hint" id="ble-wifi-status"></p>
+
+      <h3>Connection test</h3>
+      <button type="button" id="btn-ble-nettest">Run network test</button>
+      <pre id="ble-nettest-result" class="hidden"></pre>
+
+      <h3>Scoreboard controller</h3>
+      <button type="button" id="btn-ble-ctrl-load">Load current settings</button>
+      <textarea id="ble-ctrl-config" rows="8" spellcheck="false" class="hidden"></textarea>
+      <button type="button" id="btn-ble-ctrl-save" class="hidden">Save controller settings</button>
+      <p class="hint" id="ble-ctrl-status"></p>
+
+      <h3>Cloud relay</h3>
+      <p class="hint" id="ble-relay-status"></p>
+      <button type="button" id="btn-ble-relay-on" class="hidden">Enable cloud relay</button>
+      <button type="button" id="btn-ble-relay-off" class="hidden">Disable cloud relay</button>
+
+      <h3>Restart</h3>
+      <button type="button" id="btn-ble-reboot">Restart device</button>
+      <p class="hint" id="ble-action-status"></p>
+    </section>
+
+    <section class="card score-graphic">
+      <h2>Score graphic</h2>
+      <p class="hint">Enable to write the score graphic HTML file and use the live view. You can test the graphic without connecting.</p>
+      <label><input type="checkbox" id="output-graphic"> Enable score graphic</label>
+      <p class="graphics-links" style="margin-top: 0.75rem;">
+        <a href="/graphics">Graphics settings</a>
+        <a href="/graphic" target="_blank" rel="noopener">Open score graphic</a>
+      </p>
+    </section>
+
+    <section class="card">
+      <h2>Graphics designer</h2>
+      <p class="hint">Design your own scorebugs, lower thirds, fullscreen matchup/stats graphics, and watermarks — then send them live to one or more browser-source outputs for OBS/vMix.</p>
+      <p class="graphics-links">
+        <a href="/designer">Open designer</a>
+        <a href="/controller">Open controller</a>
+      </p>
+    </section>
+
+    <section class="card dashboard">
+      <h2>Connection</h2>
+      <div id="connection-status" class="status">Disconnected</div>
+      <p id="stats-line">Messages: 0. Last activity: —</p>
+      <p id="error-line" class="error hidden"></p>
+      <h3>Data</h3>
+      <div class="data-actions">
+        <button type="button" id="btn-raw-data" title="Store and display all incoming fields without sport filtering">Raw data</button>
+      </div>
+      <pre id="data-preview">{}</pre>
+    </section>
+  </main>
+
+  <footer>
+    <button type="button" id="check-updates">Check for updates</button>
+    <span id="version"></span>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

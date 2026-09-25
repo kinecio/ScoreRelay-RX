@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Graphics designer – ScoreRelay-RX</title>
+  <link rel="stylesheet" href="editor.css">
+</head>
+<body>
+  <div class="topbar">
+    <span class="brand">ScoreRelay-RX</span>
+    <a href="/">Settings</a>
+    <a href="/controller">Controller</a>
+    <input type="text" id="design-name" value="Untitled graphic" style="min-width:180px;">
+    <select id="design-sport">
+      <option value="generic">Generic</option>
+      <option value="baseball">Baseball</option>
+      <option value="basketball">Basketball</option>
+      <option value="football">Football</option>
+      <option value="soccer">Soccer</option>
+      <option value="volleyball">Volleyball</option>
+    </select>
+    <span class="spacer"></span>
+    <button type="button" class="secondary" id="btn-new">New</button>
+    <button type="button" class="secondary" id="btn-open">Open…</button>
+    <button type="button" class="secondary" id="btn-templates">Templates…</button>
+    <button type="button" id="btn-save">Save</button>
+    <button type="button" class="secondary" id="btn-save-as">Save as new</button>
+    <button type="button" class="danger" id="btn-delete">Delete</button>
+  </div>
+
+  <div class="layout">
+    <div class="tools">
+      <button type="button" id="tool-rect" title="Rectangle">▭</button>
+      <button type="button" id="tool-circle" title="Circle">◯</button>
+      <button type="button" id="tool-line" title="Line">╱</button>
+      <button type="button" id="tool-text" title="Text">T</button>
+      <button type="button" id="tool-image" title="Import PNG/JPG image">🖼</button>
+      <input type="file" id="image-input" accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml" style="display:none;">
+      <input type="file" id="font-input" accept=".ttf,.otf,.woff,.woff2" style="display:none;">
+      <button type="button" id="tool-front" title="Bring to front">⬆</button>
+      <button type="button" id="tool-back" title="Send to back">⬇</button>
+      <button type="button" id="tool-delete" title="Delete selected">✕</button>
+    </div>
+
+    <div class="canvas-area">
+      <canvas id="canvas"></canvas>
+    </div>
+
+    <div class="sidebar">
+      <h3>Canvas</h3>
+      <div class="field-row"><label>Width</label><input type="number" id="canvas-width" min="1" max="7680" value="1920"></div>
+      <div class="field-row"><label>Height</label><input type="number" id="canvas-height" min="1" max="4320" value="1080"></div>
+      <div class="field-row"><label>Preset</label>
+        <select id="canvas-preset">
+          <option value="">Custom</option>
+          <option value="1920x1080">Fullscreen 1920×1080</option>
+          <option value="1280x720">Fullscreen 1280×720</option>
+          <option value="860x150">Scorebug 860×150</option>
+          <option value="420x160">Watermark 420×160</option>
+        </select>
+      </div>
+      <div class="field-row"><label>Background</label>
+        <input type="checkbox" id="bg-transparent" checked><span style="font-size:0.8rem;">Transparent</span>
+      </div>
+      <div class="field-row" id="bg-color-row" style="display:none;"><label>Color</label><input type="color" id="bg-color" value="#000000"></div>
+      <button type="button" class="secondary" id="btn-apply-canvas-size" style="width:100%;">Apply size</button>
+
+      <div class="divider"></div>
+      <h3>Object</h3>
+      <div id="object-panel">
+        <p class="empty-hint">Select an object to edit its properties.</p>
+      </div>
+
+      <div class="divider"></div>
+      <h3>Data binding</h3>
+      <div id="binding-panel">
+        <p class="empty-hint">Select a text object to bind it to live data.</p>
+      </div>
+
+      <div class="divider"></div>
+      <h3>Custom fonts</h3>
+      <button type="button" class="secondary" id="btn-upload-font" style="width:100%;">Upload font file…</button>
+      <ul class="layers-list" id="fonts-list"></ul>
+
+      <div class="divider"></div>
+      <h3>Layers</h3>
+      <ul class="layers-list" id="layers-list"></ul>
+
+      <div class="divider"></div>
+      <h3>Preview data</h3>
+      <div class="field-row"><label>Source</label>
+        <select id="preview-source">
+          <option value="live">Live connection</option>
+          <option value="test">Test values</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop hidden" id="modal-open">
+    <div class="modal">
+      <h2>Open saved graphic</h2>
+      <div class="design-grid" id="open-grid"></div>
+      <div class="actions" style="margin-top:1rem;"><button type="button" class="secondary" id="close-open">Close</button></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop hidden" id="modal-templates">
+    <div class="modal">
+      <h2>Start from a template</h2>
+      <div class="template-grid" id="templates-grid"></div>
+      <div class="actions" style="margin-top:1rem;"><button type="button" class="secondary" id="close-templates">Close</button></div>
+    </div>
+  </div>
+
+  <script src="vendor/fabric.min.js"></script>
+  <script src="graphicsEngine.js"></script>
+  <script src="designer.js"></script>
+</body>
+</html>
