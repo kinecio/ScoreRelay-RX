@@ -1,6 +1,6 @@
 {
   "name": "scorerelay-rx",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "ScoreRelay-RX: cloud/local/USB/Bluetooth scoreboard data relay with web UI",
   "main": "electron/main.js",
   "bin": "src/server.js",
@@ -14,7 +14,7 @@
     "dist:win": "electron-builder --win",
     "dist:dir": "electron-builder --dir"
   },
-  "license": "MIT",
+  "license": "AGPL-3.0-only",
   "dependencies": {
     "@stoprocent/noble": "^2.8.0",
     "express": "^4.21.0",
@@ -39,7 +39,7 @@
   "build": {
     "appId": "com.scorerelay.rx",
     "productName": "ScoreRelay-RX",
-    "copyright": "MIT License",
+    "copyright": "Copyright © 2026 Dommarsantiago. Licensed under the GNU AGPL-3.0.",
     "asar": false,
     "npmRebuild": false,
     "directories": {
