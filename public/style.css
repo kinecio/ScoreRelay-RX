@@ -245,3 +245,8 @@ footer {
   white-space: pre-wrap;
   font-size: 0.85rem;
 }
+
+#source-link {
+  margin-left: 0.75rem;
+  color: #8ab4d8;
+}

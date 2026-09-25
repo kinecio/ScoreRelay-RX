@@ -214,7 +214,7 @@ The device's feed is one UTF-8 JSON object per line, terminated by `\r\n`. On co
 
 ## Open-source guardrails
 
-This repository is **public and open source** (MIT). It documents nothing about the
+This repository is **public and open source** (AGPL-3.0). It documents nothing about the
 internal security model, server topology, or infrastructure of the ScoreRelay service
 beyond what an end user needs to connect their own device. Specifically:
 
@@ -232,4 +232,13 @@ Future contributors and AI agents working in this repo: see `AGENTS.md`.
 
 ## License
 
-MIT
+Copyright (C) 2026 Dommarsantiago
+
+ScoreRelay-RX is free software, licensed under the **GNU Affero General Public License,
+version 3** (AGPL-3.0-only). You may use, study, change and share it. If you distribute a
+modified version, or let people use a modified version over a network, you must make the
+corresponding source code available to them under the same license. The full text is in
+[`LICENSE`](LICENSE); the source for every release is at
+<https://github.com/kinecio/ScoreRelay-RX>.
+
+Third-party components keep their own licenses; see `THIRD_PARTY_NOTICES.md`.

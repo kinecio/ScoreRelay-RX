@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Download ScoreRelay-RX</title>
+  <meta name="description" content="Download ScoreRelay-RX for macOS and Windows: receive scoreboard data from ScoreRelay devices and output it as JSON, text files or a TCP feed for overlays and automation.">
+  <meta name="color-scheme" content="light dark">
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --card: #ffffff;
+      --text: #15181d;
+      --muted: #5b6470;
+      --line: #dfe3e8;
+      --accent: #0b5fff;
+      --accent-text: #ffffff;
+      --accent-soft: #e8f0ff;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #111418;
+        --card: #1a1e24;
+        --text: #eef1f5;
+        --muted: #9aa4b1;
+        --line: #2b323b;
+        --accent: #4d8dff;
+        --accent-text: #0a0d12;
+        --accent-soft: #1c2a44;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    main { max-width: 760px; margin: 0 auto; padding: 48px 16px 64px; }
+    h1 { font-size: 2.1rem; line-height: 1.15; margin: 0 0 8px; }
+    h2 { font-size: 1.15rem; margin: 0 0 12px; }
+    p { margin: 0 0 12px; }
+    a { color: var(--accent); }
+    .lead { color: var(--muted); font-size: 1.1rem; margin-bottom: 28px; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+    .hero { text-align: center; }
+    .hero .version { color: var(--muted); margin: 10px 0 0; font-size: 0.95rem; }
+    .btn {
+      display: inline-block;
+      background: var(--accent);
+      color: var(--accent-text);
+      text-decoration: none;
+      font-weight: 650;
+      padding: 14px 26px;
+      border-radius: 10px;
+      font-size: 1.05rem;
+    }
+    .btn:hover, .btn:focus-visible { filter: brightness(1.08); }
+    .btn:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+    .alt { margin-top: 14px; color: var(--muted); font-size: 0.95rem; }
+    .alt a { white-space: nowrap; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 12px 8px; border-top: 1px solid var(--line); vertical-align: middle; }
+    th { color: var(--muted); font-weight: 600; font-size: 0.85rem; border-top: 0; }
+    td.dl { text-align: right; white-space: nowrap; }
+    .small { color: var(--muted); font-size: 0.9rem; }
+    .pill {
+      display: inline-block;
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-radius: 999px;
+      padding: 1px 9px;
+      font-size: 0.78rem;
+      font-weight: 650;
+      margin-left: 6px;
+    }
+    ol, ul { margin: 0 0 12px; padding-left: 1.3rem; }
+    li { margin-bottom: 6px; }
+    .links { display: flex; flex-wrap: wrap; gap: 8px 22px; }
+    footer { color: var(--muted); font-size: 0.88rem; text-align: center; margin-top: 32px; }
+    .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    [hidden] { display: none !important; }
+    @media (max-width: 520px) {
+      main { padding-top: 28px; }
+      h1 { font-size: 1.7rem; }
+      td.dl { white-space: normal; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <h1>ScoreRelay-RX</h1>
+  <p class="lead">Receive scoreboard data from your ScoreRelay devices and send it wherever you need it: JSON, text files or a TCP feed for overlays and automation. Connect through the cloud, your network, a USB cable, or Bluetooth.</p>
+
+  <section class="card hero" aria-labelledby="dl-heading">
+    <h2 id="dl-heading" hidden>Download</h2>
+    <a class="btn" id="primary" href="https://github.com/kinecio/ScoreRelay-RX/releases/latest/download/ScoreRelay-RX-mac-arm64.dmg">Download for macOS (Apple Silicon)</a>
+    <p class="version" id="version">Latest release</p>
+    <p class="alt" id="alt"></p>
+  </section>
+
+  <section class="card" aria-labelledby="all-heading">
+    <h2 id="all-heading">All downloads</h2>
+    <table>
+      <thead>
+        <tr><th scope="col">Your computer</th><th scope="col"><span class="sr">File</span></th></tr>
+      </thead>
+      <tbody>
+        <tr id="row-mac-arm64">
+          <td>Mac with Apple Silicon <span class="small">(M1 or newer)</span></td>
+          <td class="dl"><a href="https://github.com/kinecio/ScoreRelay-RX/releases/latest/download/ScoreRelay-RX-mac-arm64.dmg">ScoreRelay-RX-mac-arm64.dmg</a></td>
+        </tr>
+        <tr id="row-mac-intel">
+          <td>Mac with an Intel chip</td>
+          <td class="dl"><a href="https://github.com/kinecio/ScoreRelay-RX/releases/latest/download/ScoreRelay-RX-mac-intel.dmg">ScoreRelay-RX-mac-intel.dmg</a></td>
+        </tr>
+        <tr id="row-win-x64">
+          <td>Windows 10 / 11 <span class="small">(64-bit)</span></td>
+          <td class="dl"><a href="https://github.com/kinecio/ScoreRelay-RX/releases/latest/download/ScoreRelay-RX-win-x64.exe">ScoreRelay-RX-win-x64.exe</a></td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="small" style="margin-top:14px">Not sure which Mac you have? Open the Apple menu → <strong>About This Mac</strong>. If it says <em>Chip: Apple M…</em> choose Apple Silicon; if it says <em>Processor: Intel…</em> choose Intel.
+    Check your download against <a href="https://github.com/kinecio/ScoreRelay-RX/releases/latest/download/SHA256SUMS.txt">SHA256SUMS.txt</a>.</p>
+  </section>
+
+  <section class="card" aria-labelledby="first-heading">
+    <h2 id="first-heading">First launch</h2>
+    <p>These apps are not signed with a paid developer certificate, so your computer will warn you the first time. That is expected.</p>
+    <p><strong>macOS</strong></p>
+    <ol>
+      <li>Open the <code>.dmg</code> and drag ScoreRelay-RX to Applications.</li>
+      <li>Right-click the app and choose <strong>Open</strong> the first time.</li>
+      <li>If you use Bluetooth, choose <strong>Allow</strong> when macOS asks, then <strong>quit and reopen the app once</strong> so it takes effect.</li>
+    </ol>
+    <p><strong>Windows</strong></p>
+    <ol>
+      <li>Run the setup file.</li>
+      <li>If SmartScreen says it protected your PC, choose <strong>More info → Run anyway</strong>.</li>
+    </ol>
+  </section>
+
+  <section class="card" aria-labelledby="src-heading">
+    <h2 id="src-heading">Source code and license</h2>
+    <p>ScoreRelay-RX is free software under the <a href="https://www.gnu.org/licenses/agpl-3.0.html">GNU Affero General Public License v3</a>. The source for every release is on GitHub.</p>
+    <div class="links">
+      <a href="https://github.com/kinecio/ScoreRelay-RX">GitHub repository</a>
+      <a href="https://github.com/kinecio/ScoreRelay-RX/releases/latest">Release notes</a>
+      <a href="https://github.com/kinecio/ScoreRelay-RX/releases">All versions</a>
+      <a href="https://github.com/kinecio/ScoreRelay-RX/issues">Report a problem</a>
+    </div>
+  </section>
+
+  <footer>ScoreRelay-RX &middot; AGPL-3.0</footer>
+</main>
+
+<script>
+(function () {
+  var BASE = 'https://github.com/kinecio/ScoreRelay-RX/releases/latest/download/';
+  var FILES = {
+    'mac-arm64': { label: 'macOS (Apple Silicon)', file: 'ScoreRelay-RX-mac-arm64.dmg' },
+    'mac-intel': { label: 'macOS (Intel)', file: 'ScoreRelay-RX-mac-intel.dmg' },
+    'win-x64':   { label: 'Windows',               file: 'ScoreRelay-RX-win-x64.exe' }
+  };
+  var primary = document.getElementById('primary');
+  var alt = document.getElementById('alt');
+  var versionEl = document.getElementById('version');
+
+  function link(key, text) {
+    var a = document.createElement('a');
+    a.href = BASE + FILES[key].file;
+    a.textContent = text;
+    return a;
+  }
+
+  // Decide which download to feature. Browsers do not reveal whether a Mac is
+  // Apple Silicon or Intel, so a Mac gets Apple Silicon (every Mac sold since
+  // 2020) with the Intel build one click away.
+  var ua = (navigator.userAgent || '') + ' ' + (navigator.platform || '');
+  var mobile = /iPhone|iPad|iPod|Android/i.test(ua);
+  var key = null;
+  if (!mobile && /Win/i.test(ua)) key = 'win-x64';
+  else if (!mobile && /Mac/i.test(ua)) key = 'mac-arm64';
+
+  if (key) {
+    primary.href = BASE + FILES[key].file;
+    primary.textContent = 'Download for ' + FILES[key].label;
+    alt.textContent = '';
+    if (key === 'mac-arm64') {
+      alt.appendChild(document.createTextNode('Have an Intel Mac? '));
+      alt.appendChild(link('mac-intel', 'Download the Intel version'));
+      alt.appendChild(document.createTextNode(' or '));
+      alt.appendChild(link('win-x64', 'get the Windows version'));
+      alt.appendChild(document.createTextNode('.'));
+    } else {
+      alt.appendChild(document.createTextNode('On a Mac? '));
+      alt.appendChild(link('mac-arm64', 'Apple Silicon'));
+      alt.appendChild(document.createTextNode(' or '));
+      alt.appendChild(link('mac-intel', 'Intel'));
+      alt.appendChild(document.createTextNode('.'));
+    }
+  } else {
+    primary.textContent = 'Download for macOS (Apple Silicon)';
+    alt.textContent = 'ScoreRelay-RX runs on macOS and Windows. Pick your computer in the list below.';
+  }
+
+  // Show which version "latest" currently is. The links above already point at
+  // the newest release without this; if the lookup fails nothing changes.
+  try {
+    fetch('https://api.github.com/repos/kinecio/ScoreRelay-RX/releases/latest', { headers: { Accept: 'application/vnd.github+json' } })
+      .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+      .then(function (rel) {
+        var v = String(rel.tag_name || '').replace(/^v/, '');
+        if (!v) return;
+        var when = rel.published_at ? new Date(rel.published_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }) : '';
+        versionEl.textContent = 'Version ' + v + (when ? ' · released ' + when : '');
+      })
+      .catch(function () {});
+  } catch (e) {}
+})();
+</script>
+</body>
+</html>

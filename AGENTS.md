@@ -12,7 +12,7 @@ and outputs it as JSON/TXT/hosted-TCP for overlays and automation.
 
 ## The most important rule: this repo is PUBLIC
 
-ScoreRelay-RX is MIT-licensed and public. **Anything you write here may be read by
+ScoreRelay-RX is AGPL-3.0-licensed and public. **Anything you write here may be read by
 anyone.** The parent project (ScoreRelay) has a private security model, server
 infrastructure, and operational details that must never leak into this repo.
 
