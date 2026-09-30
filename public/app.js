@@ -21,6 +21,7 @@
   const blePassword = $('ble-password');
   const bleStatus = $('ble-status');
   const bleManage = $('ble-manage');
+  let linkLoaded = false;
   const outputJson = $('output-json');
   const outputTxt = $('output-txt');
   const outputTcp = $('output-tcp');
@@ -347,7 +348,10 @@
 
   function renderBle(data) {
     const isBle = data.mode === 'ble';
-    bleManage.classList.toggle('hidden', !(isBle && data.connected));
+    const manageShown = isBle && data.connected;
+    bleManage.classList.toggle('hidden', !manageShown);
+    if (manageShown && !linkLoaded) { linkLoaded = true; loadLink(); }   // once per connection
+    if (!manageShown) linkLoaded = false;
     if (!isBle) {
       bleStatus.textContent = '';
       return;
@@ -540,6 +544,45 @@
       bleCall('setControllerConfig', cfg)
         .then(() => setText('ble-ctrl-status', 'Saved.'))
         .catch((err) => setText('ble-ctrl-status', err.message))
+    );
+  });
+
+  // ---- Device-to-device link (older devices without it answer with a plain error) ----
+  const LINK_ROLES = { off: 'Off', tx: 'Sender', rx: 'Receiver' };
+  function linkSummary(l) {
+    let t = 'This device\'s address: ' + (l.mac || 'unknown') + '. Mode: ' + (LINK_ROLES[l.role] || l.role) + '.';
+    if (l.configured_role !== l.role) t += ' Saved mode ' + (LINK_ROLES[l.configured_role] || l.configured_role) + ' is incomplete and not active.';
+    if (l.role !== 'off') {
+      if (l.tx) t += l.tx.linked ? ' Linked to the receiver.' : ' Looking for the receiver.';
+      if (l.rx) t += l.rx.sender_alive ? ' Receiving from the sender.' : ' The sender is not sending.';
+    }
+    return t;
+  }
+  function loadLink() {
+    return bleCall('getEspNow')
+      .then((r) => {
+        const l = r.espnow || {};
+        setText('ble-link-info', linkSummary(l));
+        $('ble-link-role').value = l.configured_role || 'off';
+        $('ble-link-peer').value = l.peer_mac || '';
+        $('ble-link-key').placeholder = l.key_set ? 'A key is saved. Leave empty to keep it' : 'Paste the key from the other device';
+        setText('ble-link-status', '');
+      })
+      .catch(() => setText('ble-link-info', 'This device does not support the device-to-device link.'));
+  }
+  $('btn-ble-link-save').addEventListener('click', () => {
+    const params = { role: $('ble-link-role').value, peer_mac: $('ble-link-peer').value.trim() };
+    const key = $('ble-link-key').value.trim();
+    if ($('ble-link-newkey').checked) params.generate_key = true;
+    else if (key) params.key = key;
+    busy($('btn-ble-link-save'), () =>
+      bleCall('setEspNow', params)
+        .then((r) => {
+          $('ble-link-newkey').checked = false;
+          $('ble-link-key').value = '';
+          setText('ble-link-status', 'Saved. Restart the device to apply.' + (r.key ? ' New key (write it down, it is shown once): ' + r.key : ''));
+        })
+        .catch((err) => setText('ble-link-status', err.message))
     );
   });
 

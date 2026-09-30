@@ -120,6 +120,22 @@
       <button type="button" id="btn-ble-relay-on" class="hidden">Enable cloud relay</button>
       <button type="button" id="btn-ble-relay-off" class="hidden">Disable cloud relay</button>
 
+      <h3>Device-to-device link</h3>
+      <p class="hint">Lets this device send its scoreboard data by radio to a second ScoreRelay device that stays online, so it can stay plugged into the scoreboard and power on and off with it. Set up both devices, then restart each one.</p>
+      <p class="hint" id="ble-link-info"></p>
+      <label>Role
+        <select id="ble-link-role">
+          <option value="off">Off (normal)</option>
+          <option value="tx">Sender (on the scoreboard)</option>
+          <option value="rx">Receiver (stays online)</option>
+        </select>
+      </label>
+      <label>Address of the other device <input type="text" id="ble-link-peer" placeholder="aa:bb:cc:dd:ee:ff" autocomplete="off" spellcheck="false"></label>
+      <label>Shared key <input type="text" id="ble-link-key" placeholder="Leave empty to keep the current key" autocomplete="off" spellcheck="false"></label>
+      <label><input type="checkbox" id="ble-link-newkey"> Create a new key (shown once; enter it on the other device)</label>
+      <button type="button" id="btn-ble-link-save">Save link settings</button>
+      <p class="hint" id="ble-link-status"></p>
+
       <h3>Restart</h3>
       <button type="button" id="btn-ble-reboot">Restart device</button>
       <p class="hint" id="ble-action-status"></p>
