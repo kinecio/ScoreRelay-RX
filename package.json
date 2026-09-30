@@ -1,6 +1,6 @@
 {
   "name": "scorerelay-rx",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "ScoreRelay-RX: cloud/local/USB/Bluetooth scoreboard data relay with web UI",
   "main": "electron/main.js",
   "bin": "src/server.js",

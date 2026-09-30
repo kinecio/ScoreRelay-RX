@@ -120,6 +120,12 @@
       <button type="button" id="btn-ble-relay-on" class="hidden">Enable cloud relay</button>
       <button type="button" id="btn-ble-relay-off" class="hidden">Disable cloud relay</button>
 
+      <h3>Firmware update</h3>
+      <p class="hint">The device downloads the update itself over its own Wi-Fi, so it must be connected to a network. Keep it powered until it has restarted.</p>
+      <button type="button" id="btn-ble-ota-check">Check for update</button>
+      <button type="button" id="btn-ble-ota-apply" class="hidden">Install update</button>
+      <p class="hint" id="ble-ota-status"></p>
+
       <h3>Device-to-device link</h3>
       <p class="hint">Lets this device send its scoreboard data by radio to a second ScoreRelay device that stays online, so it can stay plugged into the scoreboard and power on and off with it. Set up both devices, then restart each one.</p>
       <p class="hint" id="ble-link-info"></p>
