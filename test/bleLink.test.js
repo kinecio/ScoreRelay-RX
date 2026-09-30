@@ -83,6 +83,11 @@ class FakeDevice {
       case 'setTunnel':
         this.tunnel = { enabled: !!req.params.enabled, provisioned: true, tunnel: { host: 'relay.invalid', port: 4443 } };
         return ok({ status: 'success', applies: 'after_restart' });
+      case 'otaCheck':
+        return ok({ update_available: true, version: '9.9.9', current_version: '1.2.3' });
+      case 'otaApply':
+        this.otaStarted = true;
+        return ok({ status: 'started' });
       case 'getEspNow':
         return ok({ status: 'success', espnow: { role: 'off', configured_role: this.linkRole || 'off', mac: 'aa:bb:cc:dd:ee:01', peer_mac: '', key_set: false } });
       case 'setEspNow':
@@ -331,6 +336,18 @@ test('management requests share the link with polling, and only allowed ones run
     await assert.rejects(() => bleLink.call(method), (e) => e.code === 'not_allowed');
   }
   assert.ok(!device.requests.some((r) => ['someOtherMethod', 'anotherMethod'].includes(r.method)));
+});
+
+test('firmware update can be checked and started', async () => {
+  const { device } = setup();
+  await bleLink.open({ id: 'dev-1', adminPassword: PASSWORD });
+  await until(() => updates.some(([k]) => k === 'home_score'));
+  const r = await bleLink.call('otaCheck');
+  assert.strictEqual(r.update_available, true);
+  assert.strictEqual(r.version, '9.9.9');
+  await bleLink.call('otaApply');
+  assert.strictEqual(device.otaStarted, true);
+  assert.ok(!device.requests.some((q) => q.method === 'otaApply' && q.params && q.params.url), 'never sends a URL');
 });
 
 test('device-to-device link settings can be read and saved', async () => {

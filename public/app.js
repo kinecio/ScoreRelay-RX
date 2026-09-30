@@ -547,6 +547,41 @@
     );
   });
 
+  // ---- Firmware update: the device fetches and installs it; this only asks. No progress polling while it
+  // downloads (extra requests to a busy device can make the update fail); it restarts by itself and the session reconnects.
+  $('btn-ble-ota-check').addEventListener('click', () => {
+    $('btn-ble-ota-apply').classList.add('hidden');
+    setText('ble-ota-status', 'Checking…');
+    busy($('btn-ble-ota-check'), () =>
+      bleCall('otaCheck')
+        .then((r) => {
+          const cur = r.current_version ? ' (installed: ' + r.current_version + ')' : '';
+          if (r.update_available) {
+            setText('ble-ota-status', 'Version ' + r.version + ' is available' + cur + '.');
+            $('btn-ble-ota-apply').classList.remove('hidden');
+          } else if (r.error === 'no_network') {
+            setText('ble-ota-status', 'The device is not connected to a network, so it cannot check' + cur + '. A device set as a Sender cannot update this way; set it to Off first.');
+          } else if (r.error) {
+            setText('ble-ota-status', 'Could not check for updates (' + r.error + ')' + cur + '. Try again later.');
+          } else {
+            setText('ble-ota-status', 'The device is up to date' + cur + '.');
+          }
+        })
+        .catch((err) => setText('ble-ota-status', err.message))
+    );
+  });
+  $('btn-ble-ota-apply').addEventListener('click', () => {
+    if (!confirm('Install the update now? The device downloads it, then restarts by itself. Keep it powered, and do not use it for a live event until it is back.')) return;
+    busy($('btn-ble-ota-apply'), () =>
+      bleCall('otaApply')
+        .then(() => {
+          $('btn-ble-ota-apply').classList.add('hidden');
+          setText('ble-ota-status', 'Updating. This can take a few minutes; the device restarts when it is done and this page reconnects on its own.');
+        })
+        .catch((err) => setText('ble-ota-status', err.message))
+    );
+  });
+
   // ---- Device-to-device link (older devices without it answer with a plain error) ----
   const LINK_ROLES = { off: 'Off', tx: 'Sender', rx: 'Receiver' };
   function linkSummary(l) {
