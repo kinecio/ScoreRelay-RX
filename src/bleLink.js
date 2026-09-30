@@ -47,6 +47,8 @@ const MANAGEMENT_METHODS = {
   setControllerConfig: 20000,
   scanWifi: 40000,
   configureWifi: 20000,
+  getEspNow: 20000,
+  setEspNow: 20000,
   reboot: 8000,
 };
 

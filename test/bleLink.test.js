@@ -83,6 +83,11 @@ class FakeDevice {
       case 'setTunnel':
         this.tunnel = { enabled: !!req.params.enabled, provisioned: true, tunnel: { host: 'relay.invalid', port: 4443 } };
         return ok({ status: 'success', applies: 'after_restart' });
+      case 'getEspNow':
+        return ok({ status: 'success', espnow: { role: 'off', configured_role: this.linkRole || 'off', mac: 'aa:bb:cc:dd:ee:01', peer_mac: '', key_set: false } });
+      case 'setEspNow':
+        this.linkRole = req.params.role;
+        return ok({ status: 'success', role: req.params.role, applies: 'after_restart' });
       case 'reboot':
         this.rebooted = true;
         return null;
@@ -326,6 +331,16 @@ test('management requests share the link with polling, and only allowed ones run
     await assert.rejects(() => bleLink.call(method), (e) => e.code === 'not_allowed');
   }
   assert.ok(!device.requests.some((r) => ['someOtherMethod', 'anotherMethod'].includes(r.method)));
+});
+
+test('device-to-device link settings can be read and saved', async () => {
+  const { device } = setup();
+  await bleLink.open({ id: 'dev-1', adminPassword: PASSWORD });
+  await until(() => updates.some(([k]) => k === 'home_score'));
+  const before = await bleLink.call('getEspNow');
+  assert.strictEqual(before.espnow.configured_role, 'off');
+  await bleLink.call('setEspNow', { role: 'tx', peer_mac: 'aa:bb:cc:dd:ee:02', generate_key: true });
+  assert.strictEqual(device.linkRole, 'tx');
 });
 
 test('management calls are refused when nothing is connected', async () => {
