@@ -58,6 +58,8 @@ jobs:
             npx electron-builder --mac --publish never -c.mac.notarize=true
           else
             echo "No signing secrets: building an UNSIGNED app"
+            # Empty secrets arrive as empty variables; electron-builder reads an empty CSC_LINK as "the current folder".
+            unset CSC_LINK CSC_KEY_PASSWORD APPLE_ID APPLE_APP_SPECIFIC_PASSWORD APPLE_TEAM_ID
             CSC_IDENTITY_AUTO_DISCOVERY=false npx electron-builder --mac --publish never
           fi
       - uses: actions/upload-artifact@v4
