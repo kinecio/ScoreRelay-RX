@@ -23,7 +23,7 @@
 
 'use strict';
 
-const { UsbFrameParser, buildCtrlFrame, buildFrame, CH_STATE, CH_CTRL, CH_PIPE } = require('./usbFrame');
+const { UsbFrameParser, buildCtrlFrame, buildFrame, splitPayload, CH_STATE, CH_CTRL, CH_PIPE } = require('./usbFrame');
 const { feedEnvelope } = require('./scoreboardData');
 const usbTunnel = require('./usbTunnel');
 
@@ -102,6 +102,11 @@ function sendCtrl(obj) {
 function writeFrame(channel, bytes) {
   if (!port || !port.isOpen) return;
   try {
+    // The cloud connection hands over more than one frame can carry per read; send it as consecutive frames.
+    if (channel === CH_PIPE) {
+      for (const part of splitPayload(bytes)) port.write(buildFrame(channel, part));
+      return;
+    }
     port.write(buildFrame(channel, bytes));
   } catch (err) {
     lastError = err;
