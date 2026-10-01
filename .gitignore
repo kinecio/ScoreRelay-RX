@@ -1,4 +1,5 @@
-node_modules/
+# No trailing slash: this must also match a symlink (one was committed by accident once).
+node_modules
 dist/
 credentials.json
 data-path.json

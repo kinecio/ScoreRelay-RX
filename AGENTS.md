@@ -77,6 +77,20 @@ from the ScoreRelay cloud portal"), never the underlying protocol security desig
 
 ## Release / publishing
 
-- Run `npm run build` to produce standalone binaries (see `package.json`).
-- Before any release: `git grep -iE "(secret|token|password|api[_-]?key|BEGIN .*PRIVATE)"`
-  over the repo to confirm nothing sensitive slipped in.
+- Releases are built by `.github/workflows/desktop.yml` when a `vX.Y.Z` tag (matching
+  `package.json`) is pushed; it creates a **draft** release for a person to review and publish.
+  `npm run dist:mac|win` builds locally for testing only — never publish a local build.
+- The Windows installer is signed by SignPath (free open-source program) from CI. Setup and
+  rules are in `.github/SIGNING.md`. Keep these true, because the signing arrangement
+  depends on them:
+  - Only sign what this repo's own workflow built from this repo's source.
+  - The "Code signing policy" and "Privacy" sections of `README.md` and `docs/index.html`
+    must stay accurate. If you add telemetry, a new network destination, or any data
+    collection, disclose it there (as a user would describe it) in the same change.
+  - The app must stay uninstallable by normal means, and no commercial dual-licensing.
+  - No certificates, keys or tokens in the repo; they live only in GitHub Actions secrets.
+- `scripts/check-public-tree.sh` runs in CI and fails on tracked symlinks, credential or
+  certificate files, private keys and developer-machine paths. Run it before a release.
+  Also skim: `git grep -iE "(secret|token|password|api[_-]?key|BEGIN .*PRIVATE)"`.
+- `npm run build` (`pkg` binaries) is the legacy command-line build and is not part of the
+  signed release.
