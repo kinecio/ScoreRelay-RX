@@ -96,3 +96,16 @@ test('rejects an oversized length without overrunning', () => {
   const frames = parseAll(Buffer.concat([bad, good]));
   assert.strictEqual(frames.length, 1);
 });
+
+test('splitPayload keeps every piece inside one frame and loses nothing', () => {
+  const { splitPayload, MAX_PAYLOAD, buildFrame } = require('../src/usbFrame');
+  const big = Buffer.alloc(5000, 7);
+  const parts = splitPayload(big);
+  assert.ok(parts.length > 1);
+  assert.equal(Buffer.concat(parts).length, 5000);
+  for (const p of parts) {
+    assert.ok(p.length <= MAX_PAYLOAD);
+    assert.doesNotThrow(() => buildFrame(0x02, p));
+  }
+  assert.deepEqual(splitPayload(Buffer.alloc(0)), []);
+});

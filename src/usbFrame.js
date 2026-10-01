@@ -53,6 +53,17 @@ function buildFrame(channel, payload) {
   return frame;
 }
 
+/** Split a byte run into pieces that each fit one frame. The broker can hand over far more than one frame
+ *  carries in a single read; sending it whole throws "payload too large" and the cloud connection never
+ *  comes up. 1024 keeps every frame well inside both the frame limit and one radio hop's buffering. */
+const PIPE_CHUNK = 1024;
+function splitPayload(payload, size = PIPE_CHUNK) {
+  const bytes = Buffer.isBuffer(payload) ? payload : Buffer.from(payload || []);
+  const parts = [];
+  for (let i = 0; i < bytes.length; i += size) parts.push(bytes.subarray(i, Math.min(i + size, bytes.length)));
+  return parts;
+}
+
 function buildCtrlFrame(obj) {
   return buildFrame(CH_CTRL, Buffer.from(JSON.stringify(obj), 'utf8'));
 }
@@ -128,5 +139,6 @@ module.exports = {
   crc16,
   buildFrame,
   buildCtrlFrame,
+  splitPayload,
   UsbFrameParser,
 };
