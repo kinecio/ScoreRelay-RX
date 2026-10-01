@@ -22,6 +22,7 @@ function getStats() {
       usbPort: usb.portLabel || null,
       usbFirmware: usb.firmware || null,
       usbTunnel: usb.tunnel || null,
+      usbReceiver: usb.receiver || null,
       data: dataAggregator.getData(),
       rawDataMode: dataAggregator.getRawDataMode(),
     };

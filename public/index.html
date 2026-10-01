@@ -48,6 +48,20 @@
           <label>USB port <select id="usb-port-select"><option value="">Loading…</option></select></label>
           <button type="button" id="btn-refresh-usb">Refresh ports</button>
           <p class="hint" id="usb-port-name"></p>
+          <div id="usb-receiver" class="hidden">
+            <h3>Wireless receiver</h3>
+            <p class="hint" id="usb-receiver-info"></p>
+            <p class="hint">Pair it with the scoreboard device once: create a key here, then enter the receiver's
+              address and the same key on the device (open the device over Bluetooth and use the
+              <em>Device-to-device link</em> card, role <em>Sender</em>).</p>
+            <label>Radio channel
+              <select id="usb-receiver-channel"></select>
+            </label>
+            <label>Shared key <input type="text" id="usb-receiver-key" placeholder="Paste the key from the device, or create a new one" autocomplete="off" spellcheck="false"></label>
+            <label><input type="checkbox" id="usb-receiver-newkey"> Create a new key (shown once; enter it on the device)</label>
+            <button type="button" id="btn-usb-receiver-save">Save receiver settings</button>
+            <p class="hint" id="usb-receiver-status"></p>
+          </div>
         </div>
 
         <div id="ble-fields" class="mode-fields hidden">
