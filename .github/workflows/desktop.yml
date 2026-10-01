@@ -2,46 +2,46 @@ name: Desktop apps
 
 # Builds the Windows installer and the macOS disk images on real Windows and
 # macOS runners. Run it by hand (Actions -> Desktop apps -> Run workflow) or
-# push a tag like v1.2.0.
+# push a tag like v1.2.0. A tag also creates a DRAFT GitHub release holding
+# exactly the files the download page links to; a person reviews and publishes it.
 #
-# Signing is optional and driven entirely by repository secrets — without them
-# the apps are built unsigned (fine for testing, but Windows SmartScreen and
-# macOS Gatekeeper will warn users). No certificate or password lives in this
-# repository.
-#   macOS:   CSC_LINK, CSC_KEY_PASSWORD           (Developer ID Application certificate, .p12)
-#            APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD, APPLE_TEAM_ID   (notarization)
-#   Windows: WIN_CSC_LINK, WIN_CSC_KEY_PASSWORD   (code-signing certificate, .pfx)
+# Windows signing: free code signing provided by SignPath.io, certificate by
+# SignPath Foundation. The installer is built unsigned in this run, handed to
+# SignPath as a workflow artifact, and the signed file is taken back. No
+# certificate or private key ever exists in this repository or in these runners.
+# Setup and the one-time SignPath configuration: .github/SIGNING.md
+#   Secret:    SIGNPATH_API_TOKEN
+#   Variables: SIGNPATH_ORGANIZATION_ID
+#              SIGNPATH_PROJECT_SLUG   (optional, default: scorerelay-rx)
+# Without the secret the Windows installer is built unsigned (fine for testing,
+# but SmartScreen will warn users).
+#
+# macOS signing is optional and driven by repository secrets in the same way:
+#   CSC_LINK, CSC_KEY_PASSWORD                              (Developer ID Application certificate, .p12)
+#   APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD, APPLE_TEAM_ID    (notarization)
+#
+# Third-party actions are pinned to full commit SHAs (the comment gives the version).
 
 on:
   workflow_dispatch:
   push:
     tags: ['v*']
 
+permissions:
+  contents: read
+  actions: read # SignPath reads this run's job details and downloads its artifact
+
 jobs:
   test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npm test
-      - name: Nothing sensitive in the tree
-        run: |
-          # Fail if private key material slipped in. (AGENTS.md also asks for a
-          # manual look for tokens and passwords before a release.)
-          if git grep -nE "BEGIN [A-Z ]*PRIVATE KEY" -- . ':!package-lock.json'; then
-            echo "Possible secret found"; exit 1
-          fi
+    uses: ./.github/workflows/ci.yml
 
   mac:
     needs: test
     runs-on: macos-latest
+    timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: 22
           cache: npm
@@ -62,30 +62,130 @@ jobs:
             unset CSC_LINK CSC_KEY_PASSWORD APPLE_ID APPLE_APP_SPECIFIC_PASSWORD APPLE_TEAM_ID
             CSC_IDENTITY_AUTO_DISCOVERY=false npx electron-builder --mac --publish never
           fi
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: ScoreRelay-RX-macOS
           path: release/*.dmg
+          if-no-files-found: error
 
   windows:
     needs: test
     runs-on: windows-latest
+    timeout-minutes: 45
+    env:
+      # Secrets cannot be used in step conditions directly; this is the same check.
+      SIGNPATH_ENABLED: ${{ secrets.SIGNPATH_API_TOKEN != '' && github.repository == 'kinecio/ScoreRelay-RX' }}
+    outputs:
+      signed: ${{ steps.assemble.outputs.signed }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: Build (signed when secrets are set)
-        shell: bash
-        env:
-          WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
-          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+
+      - name: Build the installer (unsigned)
+        run: npx electron-builder --win --publish never
+
+      # SignPath only accepts files that a GitHub workflow itself uploaded.
+      - name: Upload unsigned installer
+        id: upload-unsigned
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: ScoreRelay-RX-Windows-unsigned
+          path: release/ScoreRelay-RX-win-x64.exe
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Sign with SignPath
+        if: env.SIGNPATH_ENABLED == 'true'
+        uses: SignPath/github-action-submit-signing-request@f6d04783b4569d051e0c80105fe66e82819d0092 # v3.0
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG || 'scorerelay-rx' }}
+          # Tagged releases use the release policy (needs an Approver in SignPath);
+          # manual runs use the test policy.
+          signing-policy-slug: ${{ startsWith(github.ref, 'refs/tags/v') && 'release-signing' || 'test-signing' }}
+          github-artifact-id: ${{ steps.upload-unsigned.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: signed
+
+      - name: Verify the Authenticode signature
+        if: env.SIGNPATH_ENABLED == 'true'
+        shell: pwsh
         run: |
-          if [ -z "$WIN_CSC_LINK" ]; then echo "No signing secrets: building an UNSIGNED installer"; fi
-          npx electron-builder --win --publish never
-      - uses: actions/upload-artifact@v4
+          $sig = Get-AuthenticodeSignature signed/ScoreRelay-RX-win-x64.exe
+          $sig | Format-List Status, StatusMessage, SignerCertificate
+          if ($sig.Status -ne 'Valid') { throw "Signature is not valid: $($sig.Status)" }
+
+      - name: Collect the installer
+        id: assemble
+        shell: bash
+        run: |
+          mkdir out
+          if [ "$SIGNPATH_ENABLED" = "true" ]; then
+            cp signed/ScoreRelay-RX-win-x64.exe out/
+            echo "signed=true" >> "$GITHUB_OUTPUT"
+          else
+            cp release/ScoreRelay-RX-win-x64.exe out/
+            echo "signed=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::SignPath is not configured: the Windows installer is UNSIGNED."
+          fi
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: ScoreRelay-RX-Windows
-          path: release/*.exe
+          path: out/ScoreRelay-RX-win-x64.exe
+          if-no-files-found: error
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [mac, windows]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write # create the draft release
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          path: dist
+
+      - name: Assemble release files
+        run: |
+          set -euo pipefail
+          tag="$GITHUB_REF_NAME"
+          ver=$(node -p "require('./package.json').version")
+          [ "$tag" = "v$ver" ] || { echo "::error::Tag $tag does not match package.json version $ver"; exit 1; }
+
+          mkdir assets
+          # Names must match the links on the download page (docs/index.html).
+          cp dist/ScoreRelay-RX-Windows/ScoreRelay-RX-win-x64.exe assets/
+          for f in dist/ScoreRelay-RX-macOS/*.dmg; do
+            case "$f" in
+              *arm64*) cp "$f" assets/ScoreRelay-RX-mac-arm64.dmg ;;
+              *)       cp "$f" assets/ScoreRelay-RX-mac-intel.dmg ;;
+            esac
+          done
+          [ "$(ls assets | wc -l)" -eq 3 ] || { echo "::error::Expected 3 installers"; ls -R dist; exit 1; }
+          (cd assets && sha256sum -- * > SHA256SUMS.txt && cat SHA256SUMS.txt)
+
+      - name: Create the draft release
+        env:
+          WINDOWS_SIGNED: ${{ needs.windows.outputs.signed }}
+        run: |
+          set -euo pipefail
+          tag="$GITHUB_REF_NAME"
+          if [ "$WINDOWS_SIGNED" != "true" ]; then
+            echo "::warning::This release's Windows installer is UNSIGNED. Do not publish it as a signed release."
+          fi
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" assets/* --clobber
+          else
+            gh release create "$tag" assets/* --draft --verify-tag \
+              --title "ScoreRelay-RX ${tag#v}" --generate-notes
+          fi

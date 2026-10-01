@@ -196,8 +196,12 @@ graphics, and asks before quitting while a device is connected.
 **Use the desktop app on macOS if you want Bluetooth.** macOS only grants Bluetooth to a real
 app, not to a command-line binary; the desktop app declares it and macOS asks you once.
 
-**Installing a downloaded build.** The builds on the Releases page are not signed with a
-paid developer certificate, so your computer will warn you the first time.
+**Installing a downloaded build.** Download from the [Releases page](https://github.com/kinecio/ScoreRelay-RX/releases)
+and check the file against `SHA256SUMS.txt`. macOS builds are not signed with a paid Apple
+developer certificate, so your computer will warn you the first time. Windows installers are
+signed through SignPath from the first release built with signing enabled (see
+[Code signing policy](#code-signing-policy)); even then, SmartScreen can show a warning for a
+file few people have downloaded yet.
 
 - **macOS:** open the `.dmg` (Apple Silicon Macs use the `arm64` one, Intel Macs the other) and
   drag ScoreRelay-RX to Applications. The first time, right-click the app and choose **Open**
@@ -206,12 +210,20 @@ paid developer certificate, so your computer will warn you the first time.
 - **Windows:** run the setup `.exe`. If SmartScreen says it protected your PC, choose
   **More info → Run anyway**.
 
+**Uninstalling.**
+
+- **Windows:** Settings → Apps → Installed apps → ScoreRelay-RX → Uninstall (or run the
+  uninstaller from the Start menu folder). Your saved settings and any data folder you chose
+  are left in place; delete them yourself if you want them gone.
+- **macOS:** quit the app and drag ScoreRelay-RX from Applications to the Trash.
+
 **Release builds.** `.github/workflows/desktop.yml` builds both installers on Windows and macOS
-runners. Unsigned builds work but show a warning on first launch (Windows SmartScreen, macOS
-Gatekeeper). For a production release, sign them: macOS needs a *Developer ID Application*
-certificate plus notarization, Windows needs a code-signing certificate. Provide these as
-repository secrets (names are listed at the top of the workflow); nothing is stored in the
-repository. The app uses the default icon until you add your own at `build/icon.png`
+runners. Pushing a version tag creates a *draft* release with the installers and
+`SHA256SUMS.txt` for a maintainer to review and publish. Windows installers are signed through
+SignPath (maintainer setup: [`.github/SIGNING.md`](.github/SIGNING.md)). macOS signing and
+notarization are optional and need a *Developer ID Application* certificate. Credentials are
+provided as repository secrets (names are listed at the top of the workflow); nothing is stored
+in the repository. The app uses the default icon until you add your own at `build/icon.png`
 (1024×1024) — electron-builder generates the platform icons from it.
 
 ## Local device (TLS TCP) protocol
@@ -230,6 +242,41 @@ The device's feed is one UTF-8 JSON object per line, terminated by `\r\n`. On co
 - The web UI and API have no built-in auth; run on localhost or behind a reverse proxy
   if exposed. The Bluetooth device controls are the exception: they only accept requests
   from the local computer.
+
+## Code signing policy
+
+Free code signing for the Windows installer is provided by [SignPath.io](https://signpath.io),
+certificate by [SignPath Foundation](https://signpath.org).
+
+- **What is signed:** only the Windows installer (`ScoreRelay-RX-win-x64.exe`), and only when it
+  was built by this repository's GitHub Actions workflow from the source code in this repository.
+  Nothing is built or signed on a personal computer.
+- **Team roles:**
+  - Authors (committers): [Dommarsantiago](https://github.com/Dommarsantiago)
+  - Reviewers: [Dommarsantiago](https://github.com/Dommarsantiago)
+  - Approvers: [Dommarsantiago](https://github.com/Dommarsantiago)
+- **Account security:** everyone with commit or approval rights uses multi-factor authentication.
+- **How to check a download:** in Windows, right-click the installer → Properties → Digital
+  Signatures, or compare it with `SHA256SUMS.txt` on the release.
+- **Report a problem** with a signed file, or suspected misuse, through the
+  [issue tracker](https://github.com/kinecio/ScoreRelay-RX/issues).
+
+## Privacy
+
+ScoreRelay-RX has no accounts, telemetry or analytics, and collects no personal data. It does not
+transfer information to other networked systems except as you set it up:
+
+- **Update check.** When the app opens, and when you press "check for updates", it asks GitHub
+  whether a newer release of this project exists. Nothing about you or your devices is sent
+  beyond the request itself (which, like any web request, reveals your IP address to GitHub).
+- **Cloud mode.** Only if you choose it and enter your access token, the app connects to the
+  ScoreRelay cloud service to receive your device's live data, and sends your token to
+  authenticate.
+- **Local, USB and Bluetooth modes.** The app talks to your own device. When a connected device
+  is set up for it, the app passes that device's own cloud connection through your computer
+  without reading or storing it.
+- **Stored on your computer.** Your settings and access token are saved in the app's per-user
+  folder, and scoreboard data is written to the folder you choose. None of it is uploaded.
 
 ## Open-source guardrails
 

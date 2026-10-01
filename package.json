@@ -86,6 +86,7 @@
       ]
     },
     "nsis": {
+      "artifactName": "ScoreRelay-RX-win-${arch}.${ext}",
       "oneClick": false,
       "perMachine": false,
       "allowToChangeInstallationDirectory": true

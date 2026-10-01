@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  SignPath artifact configuration for ScoreRelay-RX. Paste this into the SignPath
+  project (Artifact configurations -> Add -> XML) — SignPath does not read it from
+  the repository; it lives here so it is versioned and reviewable.
+
+  The GitHub Actions upload step wraps the installer in a zip, hence <zip-file>.
+  Only the Windows installer is signed; macOS uses Apple's own signing.
+-->
+<artifact-configuration xmlns="http://signpath.io/artifact-configuration/v1">
+  <zip-file>
+    <pe-file path="ScoreRelay-RX-win-x64.exe">
+      <authenticode-sign />
+    </pe-file>
+  </zip-file>
+</artifact-configuration>
