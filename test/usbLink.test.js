@@ -93,7 +93,10 @@ test('open sends hello, streams state, and advertises the tunnel destination', a
   usbLink.setTransportFactory(() => FakeSerialPort);
 
   const ports = await usbLink.listPorts();
-  assert.deepStrictEqual(ports, [{ path: '/dev/ttyFAKE0', label: 'ScoreRelay', manufacturer: 'ScoreRelay', serialNumber: '' }]);
+  assert.deepStrictEqual(ports, [{
+    path: '/dev/ttyFAKE0', label: 'ScoreRelay', manufacturer: 'ScoreRelay', serialNumber: '',
+    vendorId: '', productId: '', likelyReceiver: false,
+  }]);
 
   const opened = await usbLink.open('/dev/ttyFAKE0');
   assert.strictEqual(opened, true);
@@ -147,5 +150,109 @@ test('open rejects when the transport fails, and close is safe with no port', as
   assert.match(usbLink.getStats().lastError, /device busy/);
   usbLink.close();
   assert.doesNotThrow(() => usbLink.close());
+  usbLink.setTransportFactory(null);
+});
+
+// ---- wireless receiver -----------------------------------------------------
+
+async function openFake() {
+  FakeSerialPort.instances = [];
+  usbLink.setTransportFactory(() => FakeSerialPort);
+  await usbLink.open('/dev/ttyFAKE0');
+  return FakeSerialPort.instances[FakeSerialPort.instances.length - 1];
+}
+
+function rxStatus(extra) {
+  return Usb.buildCtrlFrame({
+    t: 'rx_status', fw: '0.1.0', mac: 'aa:bb:cc:dd:ee:01', configured: true, running: true, radio_ok: true,
+    channel: 6, link: true, sender: '11:22:33:44:55:66', rssi: -52, age_ms: 120, backlog: 0,
+    frames_rx: 10, frames_tx: 9, retransmits: 2, auth_fail: 0, resets: 1, sender_reboots: 0, dropped: 3, ...extra,
+  });
+}
+
+test('a Espressif USB serial port is flagged as a likely wireless receiver', async () => {
+  class EspPort extends FakeSerialPort {
+    static list() {
+      return Promise.resolve([
+        { path: '/dev/ttyESP', vendorId: '303A', productId: '1001' },
+        { path: '/dev/ttyOTHER', vendorId: '0403', productId: '6001' },
+      ]);
+    }
+  }
+  usbLink.setTransportFactory(() => EspPort);
+  const ports = await usbLink.listPorts();
+  assert.deepStrictEqual(ports.map((p) => p.likelyReceiver), [true, false]);
+  usbLink.setTransportFactory(null);
+});
+
+test('receiver status is reported in user-level terms, and absent for a plain device', async () => {
+  const port = await openFake();
+  assert.strictEqual(usbLink.getStats().receiver, null);
+
+  port.emit('data', rxStatus());
+  const r = usbLink.getStats().receiver;
+  assert.deepStrictEqual(r, {
+    address: 'aa:bb:cc:dd:ee:01', paired: true, radioReady: true, channel: 6, linked: true,
+    deviceAddress: '11:22:33:44:55:66', signal: -52, lastHeardMs: 120, firmware: '0.1.0',
+    resends: 2, restarts: 1, dropped: 3,
+  });
+
+  port.emit('data', rxStatus({ link: false, sender: '', age_ms: -1 }));
+  const down = usbLink.getStats().receiver;
+  assert.strictEqual(down.linked, false);
+  assert.strictEqual(down.lastHeardMs, null);
+
+  usbLink.close();
+  assert.strictEqual(usbLink.getStats().receiver, null, 'closing forgets the receiver');
+  usbLink.setTransportFactory(null);
+});
+
+test('receiverSet sends the pairing request and resolves with the one-time key', async () => {
+  const port = await openFake();
+  await assert.rejects(usbLink.receiverSet({ generateKey: true }), /not a wireless receiver/);
+
+  port.emit('data', rxStatus());
+  port.writes.length = 0;
+  const pending = usbLink.receiverSet({ generateKey: true, channel: '11' });
+  const sent = decodeCtrl(new Usb.UsbFrameParser().feed(port.writes[0])[0]);
+  assert.deepStrictEqual(sent, { t: 'rx_set', generate_key: true, channel: 11 });
+
+  port.emit('data', Usb.buildCtrlFrame({ t: 'rx_set', ok: true, applies: 'restart', key: '00112233445566778899aabbccddeeff' }));
+  assert.deepStrictEqual(await pending, { key: '00112233445566778899aabbccddeeff', restarts: true });
+
+  // a refusal from the unit becomes an error with its own words
+  const refused = usbLink.receiverSet({ key: 'nothex' });
+  port.emit('data', Usb.buildCtrlFrame({ t: 'rx_set', ok: false, error: 'key must be exactly 32 hex digits' }));
+  await assert.rejects(refused, /32 hex digits/);
+
+  await assert.rejects(usbLink.receiverSet({}), /Give a key/);
+  usbLink.close();
+  usbLink.setTransportFactory(null);
+});
+
+test('a hello drops the old cloud socket so the device starts a fresh connection', async () => {
+  const sockets = [];
+  usbTunnel.setConnector(() => {
+    const s = new FakeSocket();
+    sockets.push(s);
+    return s;
+  });
+  const port = await openFake();
+  const hello = Usb.buildCtrlFrame({ t: 'hello', fw: '2.1.0', sport: 'soccer', tunnel: { host: 'cloud.invalid', port: 4443 } });
+  port.emit('data', hello);
+  port.emit('data', Usb.buildFrame(Usb.CH_PIPE, Buffer.from('first-session')));
+  assert.strictEqual(sockets.length, 1);
+  sockets[0].emit('connect');
+
+  // The radio link restarted: the device says hello again and begins a new handshake.
+  port.emit('data', hello);
+  assert.strictEqual(sockets[0].destroyed, true, 'the stale connection is closed');
+  port.emit('data', Usb.buildFrame(Usb.CH_PIPE, Buffer.from('second-session')));
+  assert.strictEqual(sockets.length, 2, 'the new handshake gets its own connection');
+  sockets[1].emit('connect');
+  assert.deepStrictEqual(sockets[1].writes.map(String), ['second-session']);
+
+  usbLink.close();
+  usbTunnel.setConnector(null);
   usbLink.setTransportFactory(null);
 });

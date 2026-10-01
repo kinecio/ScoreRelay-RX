@@ -80,6 +80,7 @@
         } else if (data.mode !== 'usb') {
           usbPortName.textContent = '';
         }
+        renderUsbReceiver(data.mode === 'usb' ? data.usbReceiver : null);
         renderBle(data);
         if (data.lastError) {
           errorLine.textContent = data.lastError;
@@ -99,6 +100,63 @@
         btnConnect.disabled = false;
         btnDisconnect.disabled = true;
       });
+  }
+
+  // -- Wireless receiver (USB mode, when the unit on the port is one) --------
+  const recvBox = $('usb-receiver');
+  const recvInfo = $('usb-receiver-info');
+  const recvChannel = $('usb-receiver-channel');
+  const recvKey = $('usb-receiver-key');
+  const recvNewKey = $('usb-receiver-newkey');
+  const recvSave = $('btn-usb-receiver-save');
+  const recvStatus = $('usb-receiver-status');
+  let recvChannelShown = false;
+
+  function renderUsbReceiver(r) {
+    if (!recvBox) return;
+    recvBox.classList.toggle('hidden', !r);
+    if (!r) { recvChannelShown = false; return; }
+    if (!recvChannel.options.length) {
+      for (let c = 1; c <= 13; c++) {
+        const o = document.createElement('option');
+        o.value = String(c);
+        o.textContent = String(c);
+        recvChannel.appendChild(o);
+      }
+    }
+    if (!recvChannelShown && r.channel) { recvChannel.value = String(r.channel); recvChannelShown = true; }
+    let t = 'Receiver address: ' + (r.address || 'unknown') + '. ';
+    if (!r.paired) t += 'Not paired yet. ';
+    else if (!r.radioReady) t += 'The radio did not start. Unplug and replug it. ';
+    else if (r.linked) t += 'Connected to the scoreboard device' + (r.deviceAddress ? ' (' + r.deviceAddress + ')' : '') +
+      (typeof r.signal === 'number' ? ', signal ' + r.signal + ' dBm' : '') + '.';
+    else t += 'Waiting for the scoreboard device. Check that it is powered on and paired with this receiver.';
+    recvInfo.textContent = t;
+  }
+
+  if (recvSave) {
+    recvSave.addEventListener('click', () => {
+      const body = { channel: Number(recvChannel.value) };
+      if (recvNewKey.checked) body.generateKey = true;
+      else if (recvKey.value.trim()) body.key = recvKey.value.trim();
+      recvSave.disabled = true;
+      recvStatus.textContent = 'Saving…';
+      fetch(API + '/usb/receiver', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (!data.ok) throw new Error(data.error || 'Could not save');
+          recvNewKey.checked = false;
+          recvKey.value = '';
+          recvStatus.textContent = 'Saved. The receiver restarts, and this page reconnects in a few seconds.' +
+            (data.key ? ' New key (write it down, it is shown once): ' + data.key : '');
+        })
+        .catch((err) => { recvStatus.textContent = err.message; })
+        .then(() => { recvSave.disabled = false; });
+    });
   }
 
   function loadDataPath() {

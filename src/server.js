@@ -147,6 +147,15 @@ app.post('/api/usb/close', (_req, res) => {
   res.json({ ok: true });
 });
 
+// Pair a connected wireless receiver. Loopback only: it can create and reveal the
+// pairing key, so it must never be reachable from another machine.
+app.post('/api/usb/receiver', requireLocal, (req, res) => {
+  const body = req.body || {};
+  usbLink.receiverSet({ key: body.key, generateKey: body.generateKey === true, channel: body.channel })
+    .then((result) => res.json({ ok: true, ...result }))
+    .catch((err) => res.status(400).json({ ok: false, error: err.message || 'Could not pair the receiver' }));
+});
+
 // -- Bluetooth device mode ----------------------------------------------
 // Scanning and the session itself live in src/bleLink.js. Connecting goes
 // through /api/connect like every other mode.

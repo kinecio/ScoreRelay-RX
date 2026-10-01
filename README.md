@@ -105,6 +105,25 @@ connection as well; the device's traffic stays encrypted end to end.
 USB mode uses the `serialport` package (installed by `npm install`) for the port.
 No extra system drivers are needed on macOS, Linux, or Windows.
 
+## Wireless receiver (USB)
+
+For a scoreboard where the ScoreRelay device has no network at all, a small ScoreRelay **wireless
+receiver** plugs into this computer and carries the device's connection by radio. To RX it looks like a
+device on a USB cable, so everything in "USB device mode" applies: live data, and the cloud link
+when the device is set up for it.
+
+1. Plug the receiver into this computer and choose **USB device (this computer)** as the connection mode.
+   Its USB port is the one marked as a likely receiver in the list.
+2. Connect. A **Wireless receiver** card appears with the receiver's address and, once the scoreboard
+   device is in range, its signal strength.
+3. Pair once: pick a channel and tick **Create a new key**, then save. The key is shown once, and the
+   receiver restarts. On the scoreboard device (opened over Bluetooth), use the *Device-to-device link*
+   card: role *Sender*, the receiver's address, and the same key.
+4. The receiver stays paired. After that, plug it in and connect; the device reaches the cloud through
+   this computer whenever both are powered on and in range.
+
+Keep this app running and the computer awake while the scoreboard is in use.
+
 ## Bluetooth device mode
 
 Use this to connect to a device wirelessly — no cable, no network, and no need to be
