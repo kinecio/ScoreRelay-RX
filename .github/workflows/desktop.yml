@@ -24,6 +24,12 @@ name: Desktop apps
 
 on:
   workflow_dispatch:
+    inputs:
+      platforms:
+        description: Which installers to build (a tag always builds both)
+        type: choice
+        options: [all, windows, mac]
+        default: all
   push:
     tags: ['v*']
 
@@ -37,6 +43,7 @@ jobs:
 
   mac:
     needs: test
+    if: github.event_name != 'workflow_dispatch' || inputs.platforms != 'windows'
     runs-on: macos-latest
     timeout-minutes: 45
     steps:
@@ -70,6 +77,7 @@ jobs:
 
   windows:
     needs: test
+    if: github.event_name != 'workflow_dispatch' || inputs.platforms != 'mac'
     runs-on: windows-latest
     timeout-minutes: 45
     env:

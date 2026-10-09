@@ -389,7 +389,7 @@ const ready = findAvailablePort(server).then((port) => {
     console.error('No available port found. Tried:', require('./config').webPorts);
     process.exit(1);
   }
-  console.log('ScoreRelay-RX web server running at http://localhost:' + port);
+  console.log('ScoreRelay-RX web server running at http://127.0.0.1:' + port);
   console.log('Port:', port);
   return port;
 });

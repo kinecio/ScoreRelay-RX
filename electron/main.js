@@ -123,5 +123,7 @@ function createWindow() {
     }
   });
 
-  win.loadURL('http://localhost:' + port);
+  // 127.0.0.1, not "localhost": on Windows "localhost" can resolve to the IPv6
+  // loopback, where a different program may be listening on the same number.
+  win.loadURL('http://127.0.0.1:' + port);
 }
