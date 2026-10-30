@@ -106,6 +106,14 @@ jobs:
           retention-days: 7
           if-no-files-found: error
 
+      # The portable single-file .exe (no installer). Not signed by SignPath: only the installer is submitted.
+      - name: Upload portable exe
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: ScoreRelay-RX-Windows-portable
+          path: release/ScoreRelay-RX-portable-win-x64.exe
+          if-no-files-found: error
+
       - name: Sign with SignPath
         if: env.SIGNPATH_ENABLED == 'true'
         uses: SignPath/github-action-submit-signing-request@f6d04783b4569d051e0c80105fe66e82819d0092 # v3.0
@@ -173,13 +181,14 @@ jobs:
           mkdir assets
           # Names must match the links on the download page (docs/index.html).
           cp dist/ScoreRelay-RX-Windows/ScoreRelay-RX-win-x64.exe assets/
+          cp dist/ScoreRelay-RX-Windows-portable/ScoreRelay-RX-portable-win-x64.exe assets/
           for f in dist/ScoreRelay-RX-macOS/*.dmg; do
             case "$f" in
               *arm64*) cp "$f" assets/ScoreRelay-RX-mac-arm64.dmg ;;
               *)       cp "$f" assets/ScoreRelay-RX-mac-intel.dmg ;;
             esac
           done
-          [ "$(ls assets | wc -l)" -eq 3 ] || { echo "::error::Expected 3 installers"; ls -R dist; exit 1; }
+          [ "$(ls assets | wc -l)" -eq 4 ] || { echo "::error::Expected 4 installers"; ls -R dist; exit 1; }
           (cd assets && sha256sum -- * > SHA256SUMS.txt && cat SHA256SUMS.txt)
 
       - name: Create the draft release

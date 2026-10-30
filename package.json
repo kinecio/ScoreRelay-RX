@@ -82,8 +82,17 @@
           "arch": [
             "x64"
           ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
         }
       ]
+    },
+    "portable": {
+      "artifactName": "ScoreRelay-RX-portable-win-${arch}.${ext}"
     },
     "nsis": {
       "artifactName": "ScoreRelay-RX-win-${arch}.${ext}",
